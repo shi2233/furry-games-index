@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>兽游索引 · Furry Game Index</title>
+<style>
+  :root {
+    --bg: #0f0d14;
+    --bg-soft: #1a1722;
+    --bg-card: rgba(34, 31, 48, 0.55);
+    --bg-card-hover: rgba(42, 39, 64, 0.7);
+    --bg-input: rgba(26, 24, 37, 0.6);
+    --border: rgba(70, 64, 100, 0.4);
+    --border-hover: rgba(106, 96, 140, 0.6);
+    --accent: #e8a87c;
+    --accent2: #c38ec7;
+    --accent3: #85c1c5;
+    --accent-glow: rgba(195, 142, 199, 0.25);
+    --text: #f0ede8;
+    --text-dim: #9a96b0;
+    --text-faint: #6b6880;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.5);
+    --transition: .25s cubic-bezier(.4, 0, .2, 1);
+    --glass-blur: 16px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ===== 动态背景层 ===== */
+  .bg-layer {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: -1;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% -5%, rgba(232, 168, 124, 0.12), transparent 60%),
+      radial-gradient(ellipse 70% 50% at 85% 25%, rgba(195, 142, 199, 0.10), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 50% 100%, rgba(133, 193, 197, 0.08), transparent 60%),
+      radial-gradient(ellipse 50% 40% at 10% 60%, rgba(180, 120, 200, 0.06), transparent 60%),
+      linear-gradient(180deg, #0f0d14 0%, #0c0a10 100%);
+  }
+  .bg-orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.35;
+    z-index: -1;
+    pointer-events: none;
+    animation: orbFloat 20s ease-in-out infinite;
+  }
+  .bg-orb:nth-child(1) {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(232, 168, 124, 0.5), transparent 70%);
+    top: -100px; left: -80px;
+  }
+  .bg-orb:nth-child(2) {
+    width: 350px; height: 350px;
+    background: radial-gradient(circle, rgba(195, 142, 199, 0.4), transparent 70%);
+    top: 30%; right: -60px;
+    animation-delay: -5s;
+  }
+  .bg-orb:nth-child(3) {
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(133, 193, 197, 0.3), transparent 70%);
+    bottom: -50px; left: 30%;
+    animation-delay: -10s;
+  }
+  @keyframes orbFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -40px) scale(1.1); }
+    66% { transform: translate(-20px, 30px) scale(0.95); }
+  }
+
+  /* ===== 顶部 Header ===== */
+  header {
+    text-align: center;
+    padding: 56px 20px 20px;
+    position: relative;
+  }
+  header .badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent3);
+    background: rgba(133, 193, 197, 0.1);
+    border: 1px solid rgba(133, 193, 197, 0.25);
+    padding: 6px 20px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  header h1 {
+    font-size: 48px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #e8a87c, #c38ec7, #85c1c5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+    letter-spacing: -1px;
+  }
+  header .subtitle {
+    color: var(--text-dim);
+    font-size: 15px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  header .announcement {
+    margin-top: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--accent);
+    background: rgba(232, 168, 124, 0.08);
+    border: 1px solid rgba(232, 168, 124, 0.2);
+    padding: 8px 18px;
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  /* ===== 统计面板 ===== */
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+  .stat-item { text-align: center; }
+  .stat-item .num {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+  .stat-item .label {
+    font-size: 11px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin-top: 2px;
+  }
+
+  /* ===== 工具栏（毛玻璃）===== */
+  .toolbar {
+    max-width: 1280px;
+    margin: 36px auto 24px;
+    padding: 14px 24px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    position: sticky;
+    top: 10px;
+    z-index: 100;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: rgba(26, 24, 37, 0.65);
+    backdrop-filter: blur(20px) saturate(1.2);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+  .search-box {
+    flex: 1;
+    min-width: 220px;
+    position: relative;
+  }
+  .search-box input {
+    width: 100%;
+    padding: 11px 16px 11px 42px;
+    font-size: 14px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    outline: none;
+    transition: border-color var(--transition), box-shadow var(--transition);
+    font-family: inherit;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .search-box input:focus {
+    border-color: var(--accent2);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  .search-box input::placeholder { color: var(--text-faint); }
+  .search-box .icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    opacity: 0.4;
+  }
+  .search-box .clear-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-faint);
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    opacity: 0;
+    transition: opacity var(--transition);
+  }
+  .search-box .clear-btn:hover { color: var(--text); }
+  .search-box.has-text .clear-btn { opacity: 1; }
+
+  .sort-group {
+    display: flex;
+    gap: 6px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .sort-btn {
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all var(--transition);
+    white-space: nowrap;
+    font-family: inherit;
+  }
+  .sort-btn:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .sort-btn.active {
+    color: var(--bg);
+    background: var(--accent);
+  }
+
+  /* ===== 游戏卡片网格 ===== */
+  .grid {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    transition: all var(--transition);
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--accent), var(--accent2));
+    opacity: 0;
+    transition: opacity var(--transition);
+  }
+  .card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent);
+    pointer-events: none;
+  }
+  .card:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-hover);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-hover), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+  .card:hover::before { opacity: 1; }
+
+  .card .index-num {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-faint);
+    min-width: 28px;
+    text-align: right;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .card .emoji {
+    font-size: 24px;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(195, 142, 199, 0.08);
+    border: 1px solid rgba(195, 142, 199, 0.12);
+    border-radius: 10px;
+  }
+  .card .info { flex: 1; min-width: 0; }
+  .card .name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    word-break: break-word;
+    margin-bottom: 2px;
+  }
+  .card .domain {
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .card .arrow {
+    font-size: 14px;
+    color: var(--text-faint);
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: all var(--transition);
+    flex-shrink: 0;
+  }
+  .card:hover .arrow {
+    opacity: 1;
+    transform: translateX(0);
+    color: var(--accent);
+  }
+
+  /* ===== 空状态 ===== */
+  .empty {
+    flex: 1;
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--text-dim);
+  }
+  .empty .emoji { font-size: 48px; margin-bottom: 16px; }
+  .empty p { font-size: 15px; }
+  .empty .hint { font-size: 12px; color: var(--text-faint); margin-top: 8px; }
+
+  /* ===== 返回顶部（毛玻璃）===== */
+  .back-to-top {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    width: 48px;
+    height: 48px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 20px;
+    color: var(--text-dim);
+    opacity: 0;
+    pointer-events: none;
+    transition: all var(--transition);
+    z-index: 200;
+    background: rgba(26, 24, 37, 0.65);
+    backdrop-filter: blur(20px) saturate(1.2);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+  .back-to-top.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .back-to-top:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    transform: translateY(-3px);
+  }
+
+  /* ===== 底部 ===== */
+  footer {
+    text-align: center;
+    padding: 32px 24px;
+    color: var(--text-faint);
+    font-size: 12px;
+    border-top: 1px solid var(--border);
+  }
+  footer a {
+    color: var(--accent3);
+    text-decoration: none;
+    transition: color var(--transition);
+  }
+  footer a:hover { color: var(--accent); }
+
+  /* ===== 入场动画 ===== */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .card { animation: fadeInUp .3s ease both; }
+
+  /* ===== 响应式 ===== */
+  @media (max-width: 860px) {
+    header h1 { font-size: 32px; }
+    .stats-bar { gap: 28px; }
+    .toolbar { padding-left: 16px; padding-right: 16px; margin-left: 12px; margin-right: 12px; }
+    .grid { padding-left: 16px; padding-right: 16px; }
+  }
+  @media (max-width: 480px) {
+    header h1 { font-size: 26px; }
+    .stat-item .num { font-size: 26px; }
+    .card { padding: 14px; gap: 10px; }
+    .card .emoji { width: 36px; height: 36px; font-size: 20px; }
+    .card .name { font-size: 13px; }
+    .sort-btn { padding: 6px 10px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-layer"></div>
+<div class="bg-orb"></div>
+<div class="bg-orb"></div>
+<div class="bg-orb"></div>
+
+<header>
+  <div class="badge">itch.io</div>
+  <h1>兽游索引</h1>
+  <p class="subtitle">探索 592 款兽人向独立游戏 · 持续收录中</p>
+  <div class="announcement">📢 添加游戏请联系 2958800782@qq.com</div>
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="num" id="stat-total">0</div>
+      <div class="label">收录游戏</div>
+    </div>
+    <div class="stat-item">
+      <div class="num" id="stat-shown">0</div>
+      <div class="label">当前显示</div>
+    </div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="search-box" id="search-wrap">
+    <span class="icon">🔍</span>
+    <input type="text" id="search" placeholder="搜索游戏名称或作者..." autocomplete="off">
+    <button class="clear-btn" id="clear-search" title="清除">✕</button>
+  </div>
+  <div class="sort-group">
+    <button class="sort-btn active" data-sort="default">默认</button>
+    <button class="sort-btn" data-sort="az">A→Z</button>
+    <button class="sort-btn" data-sort="za">Z→A</button>
+    <button class="sort-btn" data-sort="domain">作者</button>
+  </div>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<div class="back-to-top" id="back-top" title="返回顶部">↑</div>
+
+<footer>
+  数据来源
+  <a href="https://itch.io/games/tag-furry/tag-gay" target="_blank">tag-furry/tag-gay</a>
+  +
+  <a href="https://itch.io/games/tag-furry/tag-lgbt" target="_blank">tag-furry/tag-lgbt</a>
+  · 共 <span id="footer-count">0</span> 款游戏
+  · 按 <kbd>/</kbd> 快速搜索
+</footer>
+
+<script>
+const GAMES = [{"name": "Sylving", "url": "https://drakita.itch.io/sylving"}, {"name": "Dawntide", "url": "https://dawntidedev.itch.io/dawntide"}, {"name": "A Journey Beyond Home", "url": "https://stray-wolf-devs.itch.io/a-journey-beyond-home"}, {"name": "DemiDato: Monster Dating Show", "url": "https://sad-ghost-studios.itch.io/demidato"}, {"name": "Badtime Stories", "url": "https://kalchivo.itch.io/badtime-stories"}, {"name": "In my new life FINAL +English ver", "url": "https://aider01.itch.io/in-my-new-life"}, {"name": "A Role to Play", "url": "https://echoproject.itch.io/a-role-to-play"}, {"name": "药：绝望的解决手段 · Medicine: The Remedy of Sheer Desperation", "url": "https://yuxiu.itch.io/medicine"}, {"name": "Idk how to title this one", "url": "https://mintsquared2.itch.io/idk-how-to-title-this-one"}, {"name": "Howl at the City", "url": "https://houndbites.itch.io/howl-at-the-city"}, {"name": "Trainwreck", "url": "https://harmoyena.itch.io/trainwreck"}, {"name": "Wandering Okali", "url": "https://connil-de-la-mienuit.itch.io/wandering-okali"}, {"name": "Graven", "url": "https://batstudios47.itch.io/graven"}, {"name": "Sticky Zeitgeist: Episode 3: A Trick With Ants", "url": "https://porpentine.itch.io/sticky-zeitgeist-s1ep3"}, {"name": "The Mirror Eater", "url": "https://popularfront.itch.io/the-mirror-eater"}, {"name": "The Human Heart", "url": "https://leothelionel.itch.io/thehumanheart"}, {"name": "出发！去落雪镇 · Go! To SnowTown", "url": "https://yuxiu.itch.io/gotosnowtown"}, {"name": "FEMBOY MAKER 69!!!", "url": "https://mdos79.itch.io/femboy-maker-69"}, {"name": "Were|House", "url": "https://sad-ghost-studios.itch.io/werehouse"}, {"name": "城堡与莫梭提斯 · Castle & Myosotis", "url": "https://yuxiu.itch.io/castle-myosotis"}, {"name": "Astrophobia", "url": "https://l4putan-machin3.itch.io/astrophobia"}, {"name": "Forsaken: My Love and Hate For You", "url": "https://graphicdreamer.itch.io/forsaken-my-love-and-hate-for-you"}, {"name": "One Last Week", "url": "https://chmron.itch.io/onelastweek"}, {"name": "BROK: Natal Tail, A New Christmas", "url": "https://cowcat.itch.io/brok-christmas"}, {"name": "Just Friends - Visual Novel", "url": "https://yekkusu.itch.io/just-friends-visual-novel"}, {"name": "Wayfinder: A Modern Tale of Furry (v1.95)", "url": "https://wayfindervn.itch.io/wayfinder"}, {"name": "What He Carried", "url": "https://boyfail-inc.itch.io/what-he-carried"}, {"name": "Scary Gourmet", "url": "https://tinysamm.itch.io/scary-gourmet"}, {"name": "Light My Way", "url": "https://batstudios47.itch.io/lightmyway"}, {"name": "BURROWS a paradise beyond", "url": "https://harmoyena.itch.io/burrows-a-paradise-beyond"}, {"name": "Noodles & Love (release 1.1 - for playdate)", "url": "https://raccoon-formality.itch.io/noodles-and-love"}, {"name": "Our Shared Lie", "url": "https://alvaradoge.itch.io/our-shared-lie"}, {"name": "拼图谜题 · Jigsaw Puzzles", "url": "https://2045754227.itch.io/jigsaw-puzzles"}, {"name": "\"Soryu-Emaki Chapter One: Oni of Scorching Heat, Unleashed! Flames of Burning Justice!\"", "url": "https://nanadragon4.itch.io/souryu-emaki-eng"}, {"name": "奇巧公寓 · Coincident Apartment", "url": "https://cpu251.itch.io/coincident-apartment"}, {"name": "BROK: The Brawl Bar", "url": "https://cowcat.itch.io/brok-the-brawl-bar"}, {"name": "蒼龍絵巻 第一話 解放された焦熱の鬼！ 燃ゆる正義の炎！ · \"Souryu-Emaki\"  - -", "url": "https://nanadragon4.itch.io/souryuu1"}, {"name": "From the Sunset Coast: Ballad of Claw and Heart", "url": "https://djmadeyevn.itch.io/balladofclawandheart"}, {"name": "Bat and Bear", "url": "https://yonkbonkers.itch.io/bat-and-bear"}, {"name": "审判日 · Judgment Day", "url": "https://coolsummer-team.itch.io/judgment-day"}, {"name": "Dirk the Dictionary", "url": "https://happycrazywild.itch.io/dirk-the-dictionary"}, {"name": "I.C.O. - Machina Lutris", "url": "https://cetusotter.itch.io/machinalutris"}, {"name": "Starville", "url": "https://mister-gato.itch.io/starville"}, {"name": "Heaven", "url": "https://burlapjoe.itch.io/heaven"}, {"name": "The Farthest View", "url": "https://nineinchtails.itch.io/thefarthestview"}, {"name": "雷霆遊騎兵 · ThunderRangers", "url": "https://thunderrangers.itch.io/thunderrangers"}, {"name": "Sisyphean Mansion", "url": "https://noble-shamrock.itch.io/sisyphean-mansion"}, {"name": "Fields of Spring", "url": "https://project-rat.itch.io/fields-of-spring"}, {"name": "Komorebi", "url": "https://klace.itch.io/komorebi"}, {"name": "苍岬的回音 · The Echo of Azure Cape", "url": "https://moonroversstudio.itch.io/teoac"}, {"name": "2 Hours", "url": "https://b0bradley.itch.io/2-hours"}, {"name": "Ediction", "url": "https://donattico.itch.io/ediction"}, {"name": "London's Aesop", "url": "https://hyenadev.itch.io/londons-aesop"}, {"name": "The Bygones", "url": "https://teamsilverstrides.itch.io/the-bygones"}, {"name": "Stardust Demon", "url": "https://resnijars.itch.io/stardust-demon"}, {"name": "Petals In The Wind", "url": "https://verysnaz.itch.io/petals-in-the-wind"}, {"name": "Blithe", "url": "https://toreso.itch.io/blithe"}, {"name": "Dikkimen", "url": "https://colorinu-games.itch.io/dikkimen"}, {"name": "Curtains Call", "url": "https://loudo.itch.io/curtains-call"}, {"name": "That One Celestial Night", "url": "https://leinavi78.itch.io/that-one-celestial-night"}, {"name": "Sun & Stars", "url": "https://neon-glows.itch.io/sunstars"}, {"name": "Gamer Den -Cancelled-", "url": "https://gamer-den-project.itch.io/gamer-den"}, {"name": "Bear Care", "url": "https://high-tea.itch.io/bear-care"}, {"name": "Cliffbound", "url": "https://tamacitris.itch.io/cliffbound"}, {"name": "Crescendo", "url": "https://googs.itch.io/crescendo"}, {"name": "High Score Hyrax", "url": "https://chmron.itch.io/high-score-hyrax"}, {"name": "Stardust Demon Demo", "url": "https://resnijars.itch.io/stardust-demon-demo"}, {"name": "Sparks, a tale of ink", "url": "https://sparks-fvn.itch.io/sparks-a-tale-of-ink"}, {"name": "bruder", "url": "https://guoshu.itch.io/bruder"}, {"name": "April Showers", "url": "https://the-bjakery.itch.io/april-showers"}, {"name": "Let Lie.", "url": "https://sometotalloser.itch.io/let-lie"}, {"name": "思念之海 · ~Sea Of Memories~", "url": "https://ktigerworks.itch.io/sea-of-memories"}, {"name": "Whisper of the Past", "url": "https://nightmaredrake.itch.io/whisper-of-the-past"}, {"name": "Encounter Among the Waves", "url": "https://onedismay.itch.io/encounter-among-the-waves"}, {"name": "餘溫 · WarmSolace-", "url": "https://h-dali.itch.io/warmsolace"}, {"name": "Charlie HasBeen: The Beginning Of The End", "url": "https://norbez.itch.io/charlie-hasbeen-the-beginning-of-the-end"}, {"name": "One More Light VN", "url": "https://erebuswulfe.itch.io/one-more-light"}, {"name": "Spirit: Summoners of Áine-Chlair", "url": "https://ghostrickfrost.itch.io/spirit-summoners-aine-chlair"}, {"name": "To Judge By The Cover", "url": "https://gronion.itch.io/to-judge-by-the-cover"}, {"name": "Contract Boyfriend · demo", "url": "https://guoshu.itch.io/contract-boyfriend"}, {"name": "SUPER PHANTASY FIGHTERS", "url": "https://andrewp-fun.itch.io/super-phantasy-fighters"}, {"name": "Wolf of White Waters", "url": "https://kraajlanding.itch.io/wolf-of-white-waters"}, {"name": "To The Shore's End", "url": "https://passiv-boi.itch.io/to-the-shores-end"}, {"name": "Bitter Sweet Memories", "url": "https://the-13th.itch.io/bitter-sweet-memories"}, {"name": "Uninvited Feelings", "url": "https://cardigan-cardigan.itch.io/uninvited-feelings"}, {"name": "You Don't Have to Go Home, But You Can't Stay Here", "url": "https://squinky.itch.io/closing-time"}, {"name": "Glass Half Full", "url": "https://raccoon-formality.itch.io/glass-half-full"}, {"name": "Another Day in Paradise", "url": "https://archaeornis.itch.io/another-day-in-paradise"}, {"name": "The Gang Goes Through the McDonald's Drive Thru", "url": "https://harmoyena.itch.io/the-gang-goes-through-the-mcdonalds-drive-thru"}, {"name": "Block Me, I Dare you ( Long hiatus )", "url": "https://kyuroun.itch.io/block-me-i-dare-you"}, {"name": "Sheltered in Silence", "url": "https://rayukiwolf.itch.io/sheltered-in-silence"}, {"name": "Go Golf Go!", "url": "https://eyematerror.itch.io/go-golf-go"}, {"name": "Yordle Party", "url": "https://mousecat.itch.io/yordleparty"}, {"name": "Pheonix's Tear", "url": "https://yellow-chocobo.itch.io/pheonixs-tear"}, {"name": "Moonlit Field", "url": "https://erebuswulfe.itch.io/moonlit-field"}, {"name": "HubbyBot Comes Home!", "url": "https://matchakitty.itch.io/hubbybot-comes-home"}, {"name": "Imperfect Facets", "url": "https://neiffarious.itch.io/imperfect"}, {"name": "Love Exalt 8372", "url": "https://teamveki.itch.io/love-exalt-8372"}, {"name": "Three Aces", "url": "https://tjdogwood.itch.io/three-aces"}, {"name": "Limelight", "url": "https://rotshild.itch.io/limelight"}, {"name": "Panda Dynasty", "url": "https://ordinarysstar.itch.io/pandadynasty"}, {"name": "The In-Between", "url": "https://dracuclaw.itch.io/the-in-between"}, {"name": "月影待蚀 · The Incomplete Lunar- -TheFirstChapter", "url": "https://dakidaki-team.itch.io/the-incomplete-lunar"}, {"name": "Fragile Hands", "url": "https://fragilehands.itch.io/fragile-hands"}, {"name": "The Other Island", "url": "https://purkka.itch.io/the-other-island"}, {"name": "Moonlighters", "url": "https://projectnewmoon.itch.io/moonlighters"}, {"name": "Glyphbound", "url": "https://taronstone.itch.io/glyphbound"}, {"name": "Blossoming Love", "url": "https://neven-vn.itch.io/blossoming-love"}, {"name": "Heavy Is Our Crown", "url": "https://pinknarcissus.itch.io/heavy-is-our-crown"}, {"name": "On a String", "url": "https://bazcus.itch.io/on-a-string"}, {"name": "Graduation Romance", "url": "https://starfur-industries.itch.io/graduation-romance"}, {"name": "Stars In Your Eyes", "url": "https://pinknarcissus.itch.io/stars-in-your-eyes"}, {"name": "A Flare For Victory v.1", "url": "https://xneobeastx.itch.io/a-flare-for-victory"}, {"name": "Sueño", "url": "https://sometimes9.itch.io/sueno"}, {"name": "Monster Throne", "url": "https://parttimedragons.itch.io/monster-throne"}, {"name": "Labor of Love", "url": "https://rainy-midwest-studios.itch.io/labor-of-love"}, {"name": "曾有一夜 · Once Upon a Night", "url": "https://bangarosh.itch.io/once-upon-a-night"}, {"name": "Please Mind the Romance", "url": "https://ruthert4.itch.io/please-mind-the-romance"}, {"name": "Escape The Date", "url": "https://raccoon-formality.itch.io/escape-the-date"}, {"name": "The Contract", "url": "https://ryushinn.itch.io/the-contract"}, {"name": "Night Drive", "url": "https://black-sheep-studios.itch.io/night-drive"}, {"name": "The Adventures of E2", "url": "https://ultimatetruth.itch.io/the-adventures-of-e2"}, {"name": "Dreamscape Escapade", "url": "https://dreamscape-escapades.itch.io/dreamscape-escapades"}, {"name": "A Rebound From MARS!", "url": "https://kraajlanding.itch.io/a-rebound-from-mars"}, {"name": "My Municipality", "url": "https://purkka.itch.io/my-municipality"}, {"name": "Bend or Break", "url": "https://skulle2n.itch.io/bob"}, {"name": "Dating and Dungeons", "url": "https://harrenmal-studios.itch.io/dating-and-dungeons"}, {"name": "时过境迁", "url": "https://shixiang.itch.io/652966197"}, {"name": "Warm Memories", "url": "https://ruiontheweb.itch.io/warm-memories"}, {"name": "Cinders of Fate", "url": "https://pakko-k.itch.io/cinders-of-fate"}, {"name": "Ugolino in the Tower", "url": "https://loudo.itch.io/ugolino-in-the-tower"}, {"name": "The silence that embraces you", "url": "https://dreamer-errante.itch.io/the-silence-that-embraces-you"}, {"name": "Fate Itself", "url": "https://killingfantasy.itch.io/fateitself"}, {"name": "Hearth and Home", "url": "https://the-bjakery.itch.io/hearth-and-home"}, {"name": "Yoga Bear (browser edition)", "url": "https://high-tea.itch.io/yogabearweb"}, {"name": "Chatroom 203", "url": "https://akumu-club.itch.io/chatroom-203"}, {"name": "Dream Wyrm: a Dragon Dad Dating Simulator", "url": "https://vennyhedgie.itch.io/dream-wyrm-a-dragon-dad-dating-simulator"}, {"name": "Demonside Beta", "url": "https://ryomams.itch.io/demonside-beta"}, {"name": "Dream Husband", "url": "https://the-criator.itch.io/dream-husband"}, {"name": "海风友别 · Sea Breeze Farewell", "url": "https://silon-rua.itch.io/sea-breeze-farewell"}, {"name": "What A Day That Was!", "url": "https://shiroooo-dev.itch.io/what-a-day-that-was"}, {"name": "Deseos de Verano", "url": "https://srapolo.itch.io/deseos-de-verano"}, {"name": "The Kestadian Hope", "url": "https://lunrae.itch.io/the-kestadian-hope"}, {"name": "The Trials and Tribulations of Set and Horus", "url": "https://saturn-murray.itch.io/the-trials-and-tribulations-of-set-and-horus"}, {"name": "My One And Only", "url": "https://cpaslocl.itch.io/moao"}, {"name": "Daring Choices", "url": "https://neven-vn.itch.io/daring-choices"}, {"name": "Deep Cyan (Demo)", "url": "https://qushuo.itch.io/deep-cyan"}, {"name": "Furwood University", "url": "https://bunnyblue511.itch.io/furwood-university"}, {"name": "Channel 8", "url": "https://this-fucking-dork.itch.io/channel-8"}, {"name": "倒错的潮汐 · Inverted Tides", "url": "https://hazyo.itch.io/invertedtides"}, {"name": "The Creature in My House", "url": "https://ghostrickfrost.itch.io/the-creature-in-my-house"}, {"name": "Last Chance", "url": "https://raccoon-formality.itch.io/last-chance"}, {"name": "Eyes Of Souls", "url": "https://mikairium.itch.io/eosvn"}, {"name": "Sunrise Fang (DEMO)", "url": "https://hdlepre.itch.io/sunrise-fang-demo"}, {"name": "Keda | A Furry Visual Novel (REMASTER WIP! SEE DESCRIPTION!)", "url": "https://teo3.itch.io/keda"}, {"name": "Accidentally Making Friends", "url": "https://hyenaay.itch.io/accidentally-making-friends"}, {"name": "RogueStarRiver", "url": "https://vanillabell.itch.io/rogue-star-river"}, {"name": "From Earth demo", "url": "https://fromearthvn.itch.io/from-earth"}, {"name": "A Valentine's Tryst", "url": "https://lil-beastman.itch.io/a-valentines-tryst"}, {"name": "More than just Gold", "url": "https://hollow-soul-stories.itch.io/mtjg"}, {"name": "2nd Shift", "url": "https://cybersalmon.itch.io/2nd-shift"}, {"name": "the Canis Convalescence", "url": "https://the-magic-tuba-pixie.itch.io/the-canis-convalescence"}, {"name": "Stuck In November", "url": "https://spesbringer.itch.io/stuckinnovember"}, {"name": "Face to Face", "url": "https://joelurker.itch.io/face-to-face"}, {"name": "Philomot", "url": "https://sphinxious.itch.io/philomot"}, {"name": "Your Eyes", "url": "https://burlapjoe.itch.io/your-eyes"}, {"name": "I’ll Breakup With Her, It’ll Hert", "url": "https://wagleunagi.itch.io/ill-breakup-with-her-itll-hert"}, {"name": "Weird Cities", "url": "https://cecilyrenns.itch.io/weird-cities"}, {"name": "RIP Me", "url": "https://bored-kitty.itch.io/rip-me"}, {"name": "Admit One", "url": "https://burlapjoe.itch.io/admit-one"}, {"name": "末路追忆 · Recollectio", "url": "https://malevision.itch.io/recollectio"}, {"name": "I WILL HAUNT YOU", "url": "https://dreadfulshroud.itch.io/i-will-haunt-you"}, {"name": "AnimaVN", "url": "https://yesntpan.itch.io/anima"}, {"name": "Pawticipant Observation", "url": "https://cynocephalophore.itch.io/pawticipant-observation"}, {"name": "Error 0: New World Found", "url": "https://apropos0.itch.io/error-0"}, {"name": "Fiend", "url": "https://ramsker.itch.io/fiend"}, {"name": "sweet tooth.", "url": "https://snixiy.itch.io/sweet-tooth"}, {"name": "The Rewritten Journal", "url": "https://specter-of-you.itch.io/trwj"}, {"name": "I’ll Break Panes Up, With Him!", "url": "https://wagleunagi.itch.io/ill-break-panes-up-with-him"}, {"name": "I, Wolfe", "url": "https://kraajlanding.itch.io/i-wolfe"}, {"name": "Found", "url": "https://kumaruking.itch.io/found"}, {"name": "Plus Kingdom Jailbreak", "url": "https://squircledev.itch.io/plus-kingdom-jailbreak"}, {"name": "Solo Records", "url": "https://ardencevice.itch.io/solo-records"}, {"name": "How to Want Something Warm", "url": "https://droptineart.itch.io/how-to-want-something-warm"}, {"name": "swamp opera", "url": "https://chimeriquement.itch.io/swamp-opera"}, {"name": "Losing Importance", "url": "https://peppekz.itch.io/losing-importance"}, {"name": "The Greener Side", "url": "https://vanillabell.itch.io/the-greener-side"}, {"name": "A Little Farther", "url": "https://joelurker.itch.io/a-little-farther"}, {"name": "福瑞小英雄：战败宿命", "url": "https://bmcgxx.itch.io/123"}, {"name": "Lily caretaker", "url": "https://sangr2015.itch.io/take-care-of-lily-game"}, {"name": "Some Isekai Furry Wattpad Shit IDK", "url": "https://kazcore.itch.io/some-isekai-furry-wattpad-shit-idk"}, {"name": "Love, I Imagine", "url": "https://gayohell.itch.io/love-i-imagine"}, {"name": "DAWG_GAME_demo", "url": "https://andeyd-games.itch.io/dawg-debik"}, {"name": "Life Choices", "url": "https://legosi1504.itch.io/life-choices"}, {"name": "Entre a Gente / Between Us", "url": "https://igor-panthera.itch.io/entre-a-gente"}, {"name": "杀死我的队长", "url": "https://heyeah.itch.io/killmyleader"}, {"name": "SKIN GAMES", "url": "https://alyxgustav.itch.io/skin-games"}, {"name": "The Magic Mediator", "url": "https://azephir.itch.io/the-magic-mediator"}, {"name": "One Last Star Trip", "url": "https://volcwolf.itch.io/one-last-star-trip"}, {"name": "Fanuvania Dreamcatchers", "url": "https://berryitch.itch.io/fanuvania-dreamcatchers"}, {"name": "INCUBUS - Leave Me Alone!", "url": "https://biubiubiu-games.itch.io/leavemealone"}, {"name": "Chained in Silence", "url": "https://rekion.itch.io/chained-in-silence"}, {"name": "Trip to Tombstone", "url": "https://scrappydoodles.itch.io/trip-to-tombstone"}, {"name": "Replay Video", "url": "https://jmjerbear.itch.io/replay-video"}, {"name": "Soulmates", "url": "https://sleepy-d0g.itch.io/soulmates"}, {"name": "Beast Heart", "url": "https://nick-lothario.itch.io/beast-heart"}, {"name": "HAR vs OLD - Dark Universe", "url": "https://berryitch.itch.io/harvsold"}, {"name": "Be Safe With Me", "url": "https://tinkering-tail-games.itch.io/be-safe-with-me"}, {"name": "巫见：畴昔", "url": "https://salemount.itch.io/past-night"}, {"name": "Demoliton Debs Prototype 2", "url": "https://woodhouse3d.itch.io/demoliton-debs-prototype-2"}, {"name": "Three Feet Apart", "url": "https://deluxie.itch.io/three-feet-apart"}, {"name": "EPILOGUE", "url": "https://sirhatsley.itch.io/americanatooki"}, {"name": "My Big Bad Wolf", "url": "https://scrappydoodles.itch.io/my-big-bad-wolf"}, {"name": "The Cloud Messenger's Feast", "url": "https://ivatox.itch.io/the-cloud-messengers-feast"}, {"name": "My Anemic Disposition", "url": "https://tomthebastard.itch.io/my-anemic-disposition"}, {"name": "The Tale of Drac de Na Coca", "url": "https://ssekkaha.itch.io/drac-de-na-coca"}, {"name": "Christmas Spit", "url": "https://curicrow.itch.io/christmas-spit"}, {"name": "Find Your Light", "url": "https://mayomilkshake.itch.io/find-your-light"}, {"name": "Shards of Tomorrow (Demo)", "url": "https://integraalfr.itch.io/shards-of-tomorrow"}, {"name": "NEW Phantom Tome DEMO", "url": "https://ducknoir.itch.io/new-phantom-tome-demo"}, {"name": "Rebuilding Relations", "url": "https://peppekz.itch.io/rebuilding-relations"}, {"name": "Lost in Shadows (cancelled)", "url": "https://yellow-chocobo.itch.io/lost-in-shadows"}, {"name": "Bearer of sin", "url": "https://spesbringer.itch.io/bearerofsin"}, {"name": "The perfect surprise", "url": "https://aurum-lingua-games.itch.io/the-perfect-surprise"}, {"name": "Dog Eater", "url": "https://supersliceman.itch.io/dog-eater"}, {"name": "Type 1Aide", "url": "https://the-magic-tuba-pixie.itch.io/type-1aide"}, {"name": "Unwritten Path", "url": "https://moralcian.itch.io/unwritten-path"}, {"name": "WitchTrap", "url": "https://gronion.itch.io/witchtrap"}, {"name": "Meowdventures", "url": "https://ragdoll-games.itch.io/meowdventures"}, {"name": "after glow gay furry vn", "url": "https://yuta-dev.itch.io/after-glow-gay-furry-vn"}, {"name": "Барони Невдачі", "url": "https://true-pengon.itch.io/barons-of-misfortune"}, {"name": "INCUBUS - Flappy Brand!", "url": "https://biubiubiu-games.itch.io/flappybrand"}, {"name": "Fragments of the Past", "url": "https://tavios.itch.io/fragments-of-the-past"}, {"name": "Everything Changes", "url": "https://krno.itch.io/everything-changes"}, {"name": "Refuge", "url": "https://dolphinsareevil.itch.io/refuge"}, {"name": "Cuida a tu furry femboy Floofy <3", "url": "https://soypinto.itch.io/cuida-a-tu-furry-femboy-floofy"}, {"name": "INCUBUS - Shoot More!", "url": "https://biubiubiu-games.itch.io/shootmore"}, {"name": "Someone's at Robin's House", "url": "https://ghostlygreen.itch.io/someones-at-robins-house"}, {"name": "Killing Ouroboros", "url": "https://skeletonmob.itch.io/killing-ouroboros"}, {"name": "A Lost World", "url": "https://coolcats110.itch.io/a-lost-world"}, {"name": "The Barn", "url": "https://crown27.itch.io/the-barn"}, {"name": "Beneath the Cherry Blossom", "url": "https://kev6655.itch.io/beneath-the-cherry-blossom"}, {"name": "The Consensus Protocol", "url": "https://alyxgustav.itch.io/the-consensus-protocol"}, {"name": "ADASTRA SWITCH PORT [UNOFFICIAL]", "url": "https://kristhedog.itch.io/adastra-switch"}, {"name": "Echo: Ruta 65", "url": "https://isaackokami.itch.io/echo-ruta-65"}, {"name": "30个兽人的新春修罗场", "url": "https://bmcgxx.itch.io/30furry"}, {"name": "Gambling With Gravity", "url": "https://alexw-nextgen.itch.io/gambling-with-gravity"}, {"name": "End of the Rope", "url": "https://almanners.itch.io/end-of-the-rope"}, {"name": "Animalia furry romance", "url": "https://unicornjesse.itch.io/animalia-furry-romance"}, {"name": "2 Hours (ภาษาไทย)", "url": "https://ben-the-game-translator.itch.io/2-hours-th"}, {"name": "Ice Cream Platforms!", "url": "https://gdg-bot.itch.io/ice-cream-platforms"}, {"name": "Skurplesnout Customization", "url": "https://oboetoad.itch.io/skurplesnout-customization"}, {"name": "灵魂渲染", "url": "https://coolsummer-team.itch.io/soulrendering"}, {"name": "Ludwig!", "url": "https://ludwig-squirrel.itch.io/ludwig"}, {"name": "MINEBARA - Gayest Edition", "url": "https://bsdzy.itch.io/minebara-gayest-edition"}, {"name": "挪威，共度一夜", "url": "https://charliecookie.itch.io/norwayonemoretonight"}, {"name": "Genrepocalypse (Demo)", "url": "https://ellie-flynn-studios.itch.io/genrepocalypse-demo"}, {"name": "D.C.", "url": "https://bubble-film.itch.io/dc"}, {"name": "Confused? The Prequel", "url": "https://snipps.itch.io/confused-the-prequel"}, {"name": "tdbtbod", "url": "https://444ke.itch.io/shuguang"}, {"name": "Maybe", "url": "https://junideveloper.itch.io/maybe"}, {"name": "Umi and Candy: Demo Zero (April Fools 2024 Build)", "url": "https://therealbluestar.itch.io/umi-and-candy-demo-zero-april-build"}, {"name": "Lights Out", "url": "https://tabletop-studios.itch.io/lights-out"}, {"name": "Furry向视觉小说】《星河与你》 · You From The Galaxy", "url": "https://carlosscorpions.itch.io/youfromthegalaxy"}, {"name": "migel vs seboobieson epic fixing simulator X 99 revamped", "url": "https://bisexualskibiyoungsheldom.itch.io/migel-vs-seboobieson-epic-fixing-simulator-x-99-revamped"}, {"name": "Ratboy", "url": "https://leoiscool2.itch.io/ratboy"}, {"name": "Letters", "url": "https://mikairium.itch.io/lettersvn"}, {"name": "By Chance - Prototype", "url": "https://smallredpan.itch.io/by-chance-prototype"}, {"name": "BOMŽPAKIU FABRIKAS 3: THE OTHER", "url": "https://baltic-manki.itch.io/bompaki-factory-the-other"}, {"name": "Dino Game", "url": "https://applecraft121.itch.io/dino-game"}, {"name": "The Rise Of Thole", "url": "https://asdeyvol.itch.io/the-rise-of-thole-ponganos-50"}, {"name": "Rap-Battle Simulator", "url": "https://dczdfcby.itch.io/rapbattlesim"}, {"name": "Sort Or Splode Remake", "url": "https://headshot56yt.itch.io/sort-or-splode-remake"}, {"name": "Whisk & Wit (WIP)", "url": "https://sylorie.itch.io/whisk-and-wit"}, {"name": "De-mo", "url": "https://blecti.itch.io/demo"}, {"name": "Become a green squirrel", "url": "https://fireredsnivy.itch.io/become-a-green-squirrel"}, {"name": "ProofOFConcept-DemoVer", "url": "https://novadarkstudio.itch.io/proofofconceptdemo"}, {"name": "Ceria (On Hold)", "url": "https://vallisthetiger.itch.io/ceria"}, {"name": "Furry land", "url": "https://3030743.itch.io/httpsgamcorecomgamesfurry-land"}, {"name": "Rat race", "url": "https://nulltexture.itch.io/rat-race"}, {"name": "PLU.SH DEMO", "url": "https://meowchie.itch.io/plush"}, {"name": "Oh! It's SunnyLand!", "url": "https://moritakas-house.itch.io/oh-its-sunnyland"}, {"name": "Baranthro Heroes", "url": "https://corvusliv.itch.io/baranthro-heros"}, {"name": "So Long as We Both Shall Live", "url": "https://ragmaan.itch.io/so-long-as-we-both-shall-live"}, {"name": "Dinner with Blan", "url": "https://blanpwoofer.itch.io/dinner-with-blan"}, {"name": "亚斯兰时光录 · Aslan Time", "url": "https://samuelq.itch.io/aslan-time"}, {"name": "Baring Fangs", "url": "https://boroco.itch.io/baringfangs"}, {"name": "Between Gods and Demons", "url": "https://the-criator.itch.io/between-gods-and-demons"}, {"name": "Rainy Days", "url": "https://vkywrufwe.itch.io/rainy-days"}, {"name": "Together", "url": "https://team-together.itch.io/together"}, {"name": "We Got Another Year", "url": "https://douglaskim.itch.io/we-got-another-year"}, {"name": "Lookouts", "url": "https://paranoidhawk.itch.io/lookouts"}, {"name": "Campo Largo", "url": "https://toledo-art.itch.io/campo-largo"}, {"name": "Cryptid Crush", "url": "https://drowsy-drake-studios.itch.io/cryptid-crush"}, {"name": "Promises to Keep", "url": "https://promises-to-keep-vn.itch.io/promises-to-keep"}, {"name": "Dawn Chorus", "url": "https://dawn-chorus.itch.io/dawn-chorus"}, {"name": "purrgatory", "url": "https://nivrad00.itch.io/purrgatory"}, {"name": "Super Lesbian Animal RPG", "url": "https://ponett.itch.io/slarpg"}, {"name": "Cienie", "url": "https://teamcienie.itch.io/cienie"}, {"name": "Where The Demon Lurks", "url": "https://bokedaidu.itch.io/where-the-demon-lurks"}, {"name": "Minotaur Hotel: SFW Mode", "url": "https://minoh.itch.io/minotaur-hotel-sfw"}, {"name": "Come With Me", "url": "https://shine-lwp.itch.io/come-with-me"}, {"name": "Nekojishi", "url": "https://studioklondike.itch.io/nekojishi"}, {"name": "WHODUNNIT", "url": "https://donattico.itch.io/whodunnit"}, {"name": "Casino x Forte x Scandal", "url": "https://konpeitocat.itch.io/casino-x-forte-x-scandal"}, {"name": "SECOND BASE - CHAPTER 1A", "url": "https://dalmond-team.itch.io/second-base"}, {"name": "PAIcom (furry computer assistant)", "url": "https://ovidiu-dendrino.itch.io/paicom-premium"}, {"name": "Early Shift", "url": "https://noisybear.itch.io/early-shift"}, {"name": "与那家伙合租房 · あいつとシェアハウス · Shared House", "url": "https://kurosawa4780.itch.io/shared-house"}, {"name": "The Testimony of Trixie Glimmer Smith", "url": "https://digital-poppy.itch.io/trixie"}, {"name": "Purrfect Apawcalypse: Love at Furst Bite", "url": "https://90percentstudios.itch.io/purrfect-apawcalypse-love-at-furst-bite"}, {"name": "Purrfect Apawcalypse: Purrgatory Furever", "url": "https://90percentstudios.itch.io/purrfect-apawcalypse-2"}, {"name": "Purrfect Apawcalypse: Patches' Infurno", "url": "https://90percentstudios.itch.io/purrfect-apawcalypse-3"}, {"name": "Beek - Familiar Spirit", "url": "https://studioklondike.itch.io/beek"}, {"name": "I'm Now the School Delinquent's Lover, but I Want Out!!", "url": "https://konpeitocat.itch.io/im-now-the-school-delinquents-lover-but-i-want-out"}, {"name": "Three Lesbians in a Barrow", "url": "https://digital-poppy.itch.io/lesbians"}, {"name": "A Glimpse Of Memory", "url": "https://ptatocollen.itch.io/a-glimpse-of-memory"}, {"name": "Specimen 29 sfw", "url": "https://smughyenastudios.itch.io/specimen29sfw"}, {"name": "Dead Ringer", "url": "https://drowsy-drake-studios.itch.io/dead-ringer"}, {"name": "The Wayward Tower", "url": "https://team-wolf-in-a-tower.itch.io/the-wayward-tower"}, {"name": "Devil Express", "url": "https://bad-pet.itch.io/devil-express"}, {"name": "Cafe of the Dead", "url": "https://duncecap0.itch.io/cafe-of-the-dead"}, {"name": "BROK the InvestiGator", "url": "https://cowcat.itch.io/brok"}, {"name": "Kaiju Noir", "url": "https://enbykaiju.itch.io/kaijunoir"}, {"name": "Blobun", "url": "https://cyansorcery.itch.io/blobun"}, {"name": "Super-Nova", "url": "https://rotshild.itch.io/super-nova"}, {"name": "The Slums", "url": "https://needs-bear.itch.io/the-slums-release"}, {"name": "Before You Depart", "url": "https://teamlycoris.itch.io/before-you-depart"}, {"name": "Bloodsuckers", "url": "https://kraajlanding.itch.io/bloodsuckers"}, {"name": "Beasts of the Thorns", "url": "https://wolfsregen.itch.io/beasts-of-the-thorns"}, {"name": "The Eye of the Storm: A Moonstray Story", "url": "https://marrowdonvn.itch.io/the-eye-of-the-storm-a-moonstray-story"}, {"name": "No More Future", "url": "https://sedgelord.itch.io/nomorefuture"}, {"name": "Splendor & Misery", "url": "https://popularfront.itch.io/splendor-and-misery"}, {"name": "Parsnip", "url": "https://bunbirb.itch.io/parsnip"}, {"name": "Sweet Leaves", "url": "https://sweetleaves.itch.io/sweet-leaves"}, {"name": "头顶上的数字 · The Number Above", "url": "https://almondlion.itch.io/the-number-above"}, {"name": "Uncommon Breed (A Furry RPG / Dating sim)", "url": "https://uncommonbreedvn.itch.io/uncommon-breed"}, {"name": "Rusty punk", "url": "https://hroft32.itch.io/rusty-punk"}, {"name": "Next Step: Follow Through", "url": "https://joshfoxden.itch.io/next-step-follow-through"}, {"name": "Hey, Moon Eyes", "url": "https://neiffarious.itch.io/hey-moon-eyes"}, {"name": "Next Step", "url": "https://joshfoxden.itch.io/next-step"}, {"name": "Three Lesbians in a Winter Special", "url": "https://digital-poppy.itch.io/lesbian-winter"}, {"name": "Basements & Bugbears", "url": "https://gryph0n.itch.io/bandb"}, {"name": "Invisible Seams", "url": "https://ladyicepaw.itch.io/invisible-seams"}, {"name": "When Trees Turn to Ice", "url": "https://ladyicepaw.itch.io/wttti"}, {"name": "Super Taco Crew", "url": "https://deckerwolf.itch.io/super-taco-crew"}, {"name": "Date with Falco", "url": "https://deertears.itch.io/date-with-falco"}, {"name": "Steadfast", "url": "https://drakes64.itch.io/steadfast"}, {"name": "Great Waves", "url": "https://kenjilo.itch.io/great-waves"}, {"name": "A Catfiend's Impending Relapse", "url": "https://beetlestench.itch.io/a-catfiends-impending-relapse"}, {"name": "Frightwood", "url": "https://ladyicepaw.itch.io/frightwood"}, {"name": "Under The Bridge", "url": "https://josephopossum.itch.io/under-the-bridge"}, {"name": "Lovewood", "url": "https://ladyicepaw.itch.io/lovewood"}, {"name": "The Well's Blessing", "url": "https://big-stretch.itch.io/the-wells-blessing"}, {"name": "Pop Pup Skateboarding", "url": "https://fakegamercomics.itch.io/poppup"}, {"name": "All We Need", "url": "https://high-tea.itch.io/all-we-need"}, {"name": "Depiction of Pleasure", "url": "https://phwoggers.itch.io/depiction-of-pleasure"}, {"name": "Yoga Bear", "url": "https://high-tea.itch.io/yoga-bear"}, {"name": "Claw on Claw", "url": "https://douglaskim.itch.io/claw-on-claw"}, {"name": "Bullwhip", "url": "https://major-minion.itch.io/bullwhip"}, {"name": "Celsius Strays", "url": "https://cowcat.itch.io/celsius-strays"}, {"name": "Night Sky | Bara game", "url": "https://fort-man.itch.io/night-sky"}, {"name": "Has Your Dream Of Dating A Cute Bunny Girl Finally Come True?", "url": "https://milkkylemon.itch.io/bunnygirldatingsim"}, {"name": "阿布日格的忧郁 · Avrags Melancholy", "url": "https://almondlion.itch.io/avragsmelancholy"}, {"name": "漏夏、无尽夏 · Hydrangea", "url": "https://caitang.itch.io/hydrangea"}, {"name": "Cubenen Gardens: Befriend", "url": "https://thegamedawg.itch.io/cubenen-gardens-befriend"}, {"name": "THE BEAST (Visual Novel)", "url": "https://ghostrickfrost.itch.io/the-beast-visual-novel"}, {"name": "Savior in Wolf's Clothing (Short Test Game)", "url": "https://needs-bear.itch.io/savior-in-wolfs-clothing"}, {"name": "Blobun Mini", "url": "https://cyansorcery.itch.io/blobun-mini"}, {"name": "Autumn's end (DEMO)", "url": "https://countlessbathory.itch.io/autumns-end-demo"}, {"name": "Mythic Mire", "url": "https://resnijars.itch.io/mythic-mire"}, {"name": "Super Lesbian Animal RPG - DEMO VERSION", "url": "https://ponett.itch.io/slarpgdemo"}, {"name": "My Final Cursed Days", "url": "https://astoryinpieces.itch.io/curseddaysgb"}, {"name": "Dust Boys", "url": "https://lysandertime.itch.io/dust-boys"}, {"name": "Heels 'n Feels", "url": "https://sk8terboii.itch.io/heels-n-feels"}, {"name": "Feral Attraction: Epilogue", "url": "https://moontoon.itch.io/feral-attraction-epilogue"}, {"name": "Pippin Please: Adequate Attorney", "url": "https://dominoclub.itch.io/pippin-please-adequate-attorney"}, {"name": "Dead Sky, CA", "url": "https://macistefx.itch.io/dead-sky"}, {"name": "Gender Lab Escape Simulator 2030", "url": "https://natalie-watts.itch.io/genderlab"}, {"name": "Devil Express: Soulstice", "url": "https://bad-pet.itch.io/devil-express-soulstice"}, {"name": "Geiger", "url": "https://erebuswulfe.itch.io/geiger"}, {"name": "罪不可恕 · Unforgivable", "url": "https://almondlion.itch.io/unforgivable"}, {"name": "Gene-Ric College", "url": "https://glassblossoms.itch.io/gene-ric-college"}, {"name": "Cafe of the Date", "url": "https://duncecap0.itch.io/cafe-of-the-date"}, {"name": "Himbo Hymns", "url": "https://lil-beastman.itch.io/himbo-hymns"}, {"name": "Born to Obey", "url": "https://rekion.itch.io/born-to-obey"}, {"name": "如果眼睛和耳朵都说了谎我们便在无光无声的世界里盛大逃亡", "url": "https://tianri.itch.io/ssrf"}, {"name": "TUNING OUT", "url": "https://danaethos.itch.io/tuning-out"}, {"name": "My Dates & Dungeons", "url": "https://bara-diction.itch.io/my-dates-dungeons"}, {"name": "Sorceria", "url": "https://hex-tales.itch.io/sorceria"}, {"name": "Terrible Jobs", "url": "https://moontouched.itch.io/terrible-jobs"}, {"name": "CATJAM: Heart Sorely Kneaded", "url": "https://ivynivek.itch.io/catjam"}, {"name": "Fell", "url": "https://fellvn.itch.io/fell"}, {"name": "Bat Cafe: Batrista Edition", "url": "https://angusbeer.itch.io/batcafe"}, {"name": "Robo Otto!", "url": "https://lil-beastman.itch.io/robo-otto"}, {"name": "The Rabbit", "url": "https://mayomilkshake.itch.io/the-rabbit"}, {"name": "purrgatory - i can't draw jam", "url": "https://nivrad00.itch.io/purrgatory-icd"}, {"name": "Kaiju Noir - Demo", "url": "https://enbykaiju.itch.io/kaijunoirdemo"}, {"name": "Six Legends", "url": "https://vincentpaquin.itch.io/sixlegends"}, {"name": "I work at the supermarket but got asked out on a date by a cutie!", "url": "https://pixiecatsupreme.itch.io/iwatsbgaooadbac"}, {"name": "LOSING GROUND", "url": "https://sometotalloser.itch.io/losing-ground"}, {"name": "IRL: The Game", "url": "https://ghostboigames.itch.io/irl-the-game"}, {"name": "North Along The River - Demo", "url": "https://northalongtheriver.itch.io/north"}, {"name": "Aromantic Confession", "url": "https://edwin-at-work.itch.io/aromantic-confession"}, {"name": "挑食 · TASTE- -", "url": "https://znuuk.itch.io/taste"}, {"name": "Dead Is Dead", "url": "https://gatrgroh.itch.io/dead-is-dead"}, {"name": "Cold case", "url": "https://corvidcrowned.itch.io/cold-case"}, {"name": "Getting Familiar", "url": "https://elizadev.itch.io/getting-familiar"}, {"name": "Swap!PurrfectApawcalypse1:TheRevengeFlame", "url": "https://ice50067617.itch.io/swappurrfectapawcalypse1therevengeflame"}, {"name": "Nowhere Fast: On the Horizon", "url": "https://docilesmiles.itch.io/on-the-horizon"}, {"name": "Close and Distant", "url": "https://dracuclaw.itch.io/close-and-distant"}, {"name": "B&K", "url": "https://hypernico.itch.io/bk"}, {"name": "Mimsy & Friends!", "url": "https://zeddybear.itch.io/mimsy-friends"}, {"name": "One Way or Another", "url": "https://undertheblacklight.itch.io/one-way-or-another"}, {"name": "Tales from the Road", "url": "https://iforgotmybrain.itch.io/tales-from-the-road"}, {"name": "Casey Noir and Carved Pumpkin's Latte", "url": "https://nik-rouz.itch.io/casey-noir-and-carved-pumpkins-latte"}, {"name": "what's your name?", "url": "https://sxilin.itch.io/namegame"}, {"name": "Horse-o-chess", "url": "https://pajamabeevegan.itch.io/horse-o-chess"}, {"name": "Last Light of the Icarus", "url": "https://inkmeteor.itch.io/last-light-of-the-icarus"}, {"name": "Arizona", "url": "https://reedflower.itch.io/arizona"}, {"name": "Videonauts", "url": "https://resnijars.itch.io/videonauts"}, {"name": "Alter Animus Demo", "url": "https://verminick.itch.io/alteranimus"}, {"name": "此间夜昼 · Daynight Within", "url": "https://caitang.itch.io/daynight-within"}, {"name": "MAW - DEMO", "url": "https://zakroutil.itch.io/maw"}, {"name": "Divided in Depth", "url": "https://lil-beastman.itch.io/divided-in-depth"}, {"name": "Magical Mystery Cure", "url": "https://bunppang.itch.io/magical-mystery-cure"}, {"name": "Moonlit VN", "url": "https://buffbuck.itch.io/moonlit-vn"}, {"name": "Potty Quest", "url": "https://shydogdreams.itch.io/pottyquest"}, {"name": "Розчаровані / Disenchanted", "url": "https://nabula.itch.io/disenchanted"}, {"name": "Note from Jenny", "url": "https://methynecros.itch.io/note-from-jenny"}, {"name": "Pawpers Pwease", "url": "https://mildly-upset-cats-studio.itch.io/pawpers-pwease"}, {"name": "RadiAngel", "url": "https://zeddybear.itch.io/radiangel"}, {"name": "一文 · Just Tarjumdad", "url": "https://caitang.itch.io/just-tarjumdad"}, {"name": "For the Love of Robots", "url": "https://fdrstar.itch.io/for-the-love-of-robots"}, {"name": "Weight Of The World", "url": "https://versolist.itch.io/weight-of-the-world"}, {"name": "Replaced", "url": "https://toesbutdelicious.itch.io/replaced"}, {"name": "《温夜余光》 · WarmNightGlow", "url": "https://mu-hua.itch.io/warm-night-glow"}, {"name": "Beeptune Tales - Spin City", "url": "https://shapeshiftgl.itch.io/bt-spin-city"}, {"name": "Le Pawfect Crime", "url": "https://hungry-dev-studios.itch.io/le-pawfect-crime"}, {"name": "Manitas Kitchen", "url": "https://littlearrowgames.itch.io/manitas-kitchen"}, {"name": "Danganronpa: High Expectations", "url": "https://mobiusei.itch.io/danganronpa-high-expectations"}, {"name": "Enkindle", "url": "https://lil-beastman.itch.io/enkindle"}, {"name": "Flowers of Arcadia", "url": "https://audreyfromearth.itch.io/flowers-of-arcadia"}, {"name": "POSSUM BOY!: The Ballad of Joey Virginia", "url": "https://big-knife-games.itch.io/possum-boy"}, {"name": "What We Were Wolf", "url": "https://shapeshiftgl.itch.io/wwwwolf"}, {"name": "Blue Souls", "url": "https://bside-stories.itch.io/blue-souls"}, {"name": "TavernRevisited demo", "url": "https://almondlion.itch.io/tavernrevisited"}, {"name": "First Day at Life Gym", "url": "https://axxisproductions.itch.io/first-day-at-life-gym"}, {"name": "Sweet Whiskers and Savage Claws", "url": "https://fava-beans.itch.io/sweet-whiskers-and-savage-claws"}, {"name": "Yet Another First Day", "url": "https://knowit01.itch.io/yet-another-first-day"}, {"name": "Aurorae Equitas", "url": "https://destiny-smasher.itch.io/aurorae-equitas"}, {"name": "Hungry Neighbors", "url": "https://catlovesdog.itch.io/hungry-neighbors"}, {"name": "Crystal Lights/Lonely Highways", "url": "https://zemaes.itch.io/crystallightslonelyhighways"}, {"name": "Sacred Chasm : Silent Utopia (early test build) OLD VERSION", "url": "https://nikuwolf.itch.io/sacred-chasm-silent-utopia"}, {"name": "Your Party Blows Ass, I'm Going Home", "url": "https://tallow-wren.itch.io/yourpartysucks"}, {"name": "Behind The Camera", "url": "https://kenny-snow.itch.io/behind-the-camera"}, {"name": "Mi experiencia lesbiana", "url": "https://kahsez.itch.io/mi-experiencia-lesbiana"}, {"name": "Celestial Ascent", "url": "https://radiocabel.itch.io/celestial-ascent"}, {"name": "Cape Greenwood", "url": "https://capegreenwood-project.itch.io/cape-greenwood"}, {"name": "MAZE TRIALS ANTHOLOGY- Vol 1", "url": "https://homebrewdeviants.itch.io/maze-trials-anthology-vol-1"}, {"name": "The Great Hero's Cat", "url": "https://mazemaker.itch.io/the-great-heros-cat"}, {"name": "The Cleric's Amulet", "url": "https://34deoutono.itch.io/the-clerics-amulet"}, {"name": "STRUCK ON POINT", "url": "https://malto-malto.itch.io/struck-on-point"}, {"name": "Shedding", "url": "https://crolaredarac.itch.io/shedding"}, {"name": "The Welkte", "url": "https://hannahpocalypse.itch.io/thewelkte"}, {"name": "UNVEILED", "url": "https://magicalsweetpeas.itch.io/unveiled"}, {"name": "Except Those Lost Forever", "url": "https://fdrstar.itch.io/except-those-lost-forever"}, {"name": "Non Crush Relief", "url": "https://saturn-murray.itch.io/non-crush-beelief"}, {"name": "Professor Fun Factanimal's Fun Mysterious Animal Facts", "url": "https://fwiva.itch.io/professor-fun-factanimals-fun-mysterious-animal-facts"}, {"name": "Sana", "url": "https://zemaes.itch.io/sana"}, {"name": "In the Earth Under the Forest", "url": "https://dinosourkisses.itch.io/in-the-earth-under-the-forest"}, {"name": "Ways To change", "url": "https://snufbel.itch.io/ways-to-change-vn-sfw"}, {"name": "WAKE ME UP WHEN YOU NEED ME (demo)", "url": "https://thenamessparkplug.itch.io/wake-me-up-when-you-need-me"}, {"name": "Broken and Mended", "url": "https://ivycrowidk.itch.io/broken-and-mended"}, {"name": "Trippy Cats", "url": "https://hana094.itch.io/trippy-cats"}, {"name": "Penelope's Gift", "url": "https://mazemaker.itch.io/penelopes-gift"}, {"name": "The Big Adventure", "url": "https://mattia54.itch.io/the-big-adventure"}, {"name": "Burning Branch", "url": "https://moontouched.itch.io/burning-branch"}, {"name": "True Love Wades", "url": "https://gisbrecht.itch.io/true-love-wades"}, {"name": "Far Cry From a Saint", "url": "https://martyrgeist.itch.io/far-cry-from-a-saint"}, {"name": "Restless Hounds", "url": "https://opossumvalley.itch.io/restless-hounds"}, {"name": "Alex Dies In The End", "url": "https://weird420xl.itch.io/alex-dies-in-the-end"}, {"name": "The Secret of Inari Desert Manor", "url": "https://honeynutfemios93.itch.io/the-secret-of-inari-desert-manor"}, {"name": "Anthrotari - Episode One", "url": "https://biggestrobot.itch.io/anthrotari-episode-one"}, {"name": "The Burning of Tula Valdi's Zozobra", "url": "https://definitelypisk.itch.io/the-burning-of-tula-valdi-s-zozobra"}, {"name": "Hamster Squad", "url": "https://whitewatt.itch.io/hamster-squad"}, {"name": "12月31日", "url": "https://wolfling-ht.itch.io/fvn1231"}, {"name": "Sheepish", "url": "https://koboldgay.itch.io/sheepish"}, {"name": "Bloom Of The White Crystal", "url": "https://cranberry-shortcake.itch.io/bloom-of-the-white-crystal"}, {"name": "The Last Heist", "url": "https://fplush360.itch.io/the-last-heist"}, {"name": "Do Not Kill Me Jacob extra TH [ภาษาไทย]", "url": "https://ben-the-game-translator.itch.io/jacob-extra-th"}, {"name": "Guts, Bolts and Hues", "url": "https://opossumvalley.itch.io/guts-bolts-and-hues"}, {"name": "The Purgatory Carnival", "url": "https://mayomilkshake.itch.io/the-purgatory-carnival"}, {"name": "Advent of the Cosmos", "url": "https://berryitch.itch.io/advent-of-the-cosmos"}, {"name": "Misty's Sleeping Forest: Pumpkins for Pumpkin", "url": "https://carmineorthus.itch.io/mistys-sleeping-forest"}, {"name": "Planetary Love", "url": "https://luizacalderan.itch.io/planetary-love"}, {"name": "In Eyes, In Hearts", "url": "https://mousemousemoose.itch.io/in-eyes-in-hearts"}, {"name": "Farewell, Aqueous Stars", "url": "https://snowsyrup.itch.io/farewell-aqueous-stars"}, {"name": "Sugar Cookie", "url": "https://34deoutono.itch.io/sugar-cookie"}, {"name": "Breaking News", "url": "https://kukinis.itch.io/breaking-news-vn"}, {"name": "Puppy Crush", "url": "https://stargirlwriting.itch.io/puppy-crush"}, {"name": "Returning the Star", "url": "https://erik-lupical.itch.io/returning-the-star"}, {"name": "SolCycle", "url": "https://emiree-draws.itch.io/solcycle"}, {"name": "Dire Date Night DEMO OUT NOW", "url": "https://limeyshark.itch.io/dire-date-night"}, {"name": "Cowed Date", "url": "https://zenzicalmorae.itch.io/cowed-date"}, {"name": "Paws and Recs", "url": "https://floofycotton.itch.io/paws-and-recs"}, {"name": "The Oregon Tail", "url": "https://impastaqqq.itch.io/the-oregon-tail"}, {"name": "Vulxilow (Alpha Build)", "url": "https://phynthefox.itch.io/vulxilow"}, {"name": "Men-Tal", "url": "https://glitchervius.itch.io/men-tal"}, {"name": "Just a Minute of Your Time", "url": "https://ochronoros.itch.io/justaminuteofyourtime"}, {"name": "Catsquerade 🐾", "url": "https://dandelev.itch.io/catsquerade"}, {"name": "Shifts", "url": "https://opossumvalley.itch.io/shifts"}, {"name": "It's all coming together!", "url": "https://lachapeliere.itch.io/its-all-coming-together"}, {"name": "Alter-Snort II", "url": "https://michaelquitblegh.itch.io/alter-snort-ii"}, {"name": "Demon of Aspenmill", "url": "https://fava-beans.itch.io/demon-of-aspenmill"}, {"name": "LP Cafe", "url": "https://tanixgames.itch.io/lp-cafe"}, {"name": "The Dead Account", "url": "https://norbez.itch.io/the-dead-account"}, {"name": "Lucky Starter", "url": "https://waterhusky.itch.io/lucky-starter"}, {"name": "HOLEHOLE", "url": "https://lululu-lu.itch.io/holehole"}, {"name": "Rae the Doe: Third Time's the Charm", "url": "https://raethedoe.itch.io/thirdtimes"}, {"name": "PollyKitten", "url": "https://xxtinyturtxx.itch.io/pollykitten"}, {"name": "Utop [Unfinished Demo]", "url": "https://pbwing.itch.io/utop"}, {"name": "Hour", "url": "https://mayomilkshake.itch.io/hour"}, {"name": "Cygnus-13: Mission Ready", "url": "https://antlerdust.itch.io/cygnus-13-demo"}, {"name": "Ghosts aren't real... Right?", "url": "https://poisonoussoybean.itch.io/ghosts-arent-real-right"}, {"name": "Canuris: Atlas And Amber", "url": "https://tannerswiftfox.itch.io/canuris-atlas-and-amber"}, {"name": "Spruce", "url": "https://spruce-development.itch.io/spruce"}, {"name": "Redd's Tread of Fate", "url": "https://pittycrybaby.itch.io/redds-tread-of-fate"}, {"name": "The Mouse's (not) Home", "url": "https://nicholasmcrae.itch.io/mousehome"}, {"name": "Itself", "url": "https://sealfinz.itch.io/itself"}, {"name": "TENDER FRAME COCOON: //rhapsody of cross-pollination", "url": "https://anpucamilla.itch.io/rhapsodyofcrosspollination"}, {"name": "Mx. Little Moo", "url": "https://maxine-red.itch.io/mx-little-moo"}, {"name": "Blue & Iris VS Ghosts", "url": "https://lutd.itch.io/blue-iris-vs-ghosts"}, {"name": "Blue & Iris: Woodland Wanderers", "url": "https://lutd.itch.io/blue-iris-woodland-wanderers"}, {"name": "She blocked me", "url": "https://ovidiu-dendrino.itch.io/she-blocked-me"}, {"name": "Stories Between the Seams", "url": "https://turnipkid.itch.io/stories-between-the-seams"}, {"name": "Up Risen", "url": "https://earlofmaine.itch.io/up-risen"}, {"name": "toil in trouble", "url": "https://anpucamilla.itch.io/toil-in-trouble"}, {"name": "The Song of the Crying Coyotes", "url": "https://earlofmaine.itch.io/the-song-of-the-crying-coyotes"}, {"name": "Los Nimboestratos", "url": "https://xen-o-gen.itch.io/nimboestratos"}, {"name": "Life is Horror: Demo", "url": "https://lifeishorror.itch.io/life-is-horror-demo"}, {"name": "Zruce Adventures", "url": "https://zruce-makes-games.itch.io/zruce-adventures"}, {"name": "SNAKE & DRAGON: World's End Parade", "url": "https://anpucamilla.itch.io/worlds-end-parade"}, {"name": "酒吧短谈 · TheBar_", "url": "https://osborne-hd.itch.io/thebar"}, {"name": "Hearts & Paws", "url": "https://weird-demon-games.itch.io/hearts-paws"}, {"name": "戏外 · offscene", "url": "https://caitang.itch.io/offscene"}, {"name": "Renard's Skin Care Routine", "url": "https://accuratefox-games.itch.io/renards-skin-care-routine"}, {"name": "Attlestead", "url": "https://eugenko-uwu.itch.io/attlestead"}, {"name": "Gangsta Parking: San Andreas", "url": "https://bushman90.itch.io/gangsta-parking-san-andreas"}, {"name": "CUBE RUNNER", "url": "https://sg-jasian.itch.io/cube-runner"}, {"name": "Scp Logfiles: Dr Sweet Pea's Arrival.", "url": "https://profsweetpea.itch.io/scp-logfiles-dr-sweet-peas-arrival"}, {"name": "Cowed Date WEB", "url": "https://zenzicalmorae.itch.io/cowed-date-web"}, {"name": "Squash & Stretch", "url": "https://inganno.itch.io/squash-stretch"}, {"name": "Bean Collector Simulator", "url": "https://beanscompany.itch.io/bean-collector-simulator"}, {"name": "Awoo City", "url": "https://zakroutil.itch.io/awoo-city"}, {"name": "ZEP - Demo ESP", "url": "https://arrecifegames.itch.io/demo-zep-match-in-games"}, {"name": "Happy Bear Hugs Fur The Atari 2600", "url": "https://tylercuddletail.itch.io/happybearhugsfuratari2600"}, {"name": "Springtime Bluebell (Demo)", "url": "https://momatemy-cereal.itch.io/springtime-bluebell"}, {"name": "Kindred Spirit", "url": "https://opossumvalley.itch.io/kindred-spirit"}, {"name": "WindVeil", "url": "https://planta.itch.io/windveil"}, {"name": "Occurrens", "url": "https://kiridraws.itch.io/occurrens"}, {"name": "Burned Out", "url": "https://boobiesoft.itch.io/burned-out"}, {"name": "Alluvial", "url": "https://aacat.itch.io/alluvial"}, {"name": "Night Lights - 2X24", "url": "https://team2night.itch.io/night-lights-2x24"}, {"name": "Tiger Monce Squirrel: Revenge of Bingus", "url": "https://nebulous-made-by-monces.itch.io/tigermoncesquirrel-rob"}, {"name": "Welcome to Vivarium: Friend-Ship Simulator Voice Claims", "url": "https://dippydingo.itch.io/welcome-to-vivarium-friend-ship-simulator-voice-claims"}, {"name": "Up For Us", "url": "https://zacdevdude.itch.io/up-for-us"}, {"name": "Lunchbox Rainy Day Activity Center", "url": "https://groods.itch.io/lunchbox"}, {"name": "Alter-Snort: Third Date", "url": "https://michaelquitblegh.itch.io/altersnort3rddate"}, {"name": "For Your Eyes", "url": "https://opossumvalley.itch.io/for-your-eyes"}, {"name": "Alter-snort III", "url": "https://michaelquitblegh.itch.io/alter-snort3"}, {"name": "Blaze", "url": "https://colixart.itch.io/blaze"}, {"name": "Doggie Dashers", "url": "https://lrr-the-dj-furry.itch.io/doggie-dashers"}, {"name": "ConeHero", "url": "https://aenvis.itch.io/conehero"}, {"name": "Platformer Aider Roxane( svp elle en a besoin)", "url": "https://noahtremblay.itch.io/platformer-aider-roxane-svp-2500vp"}, {"name": "Fluffy Hates Bannanas", "url": "https://sparkacademy.itch.io/fluffy-hates-bannanas"}, {"name": "Dalworthington Eats a Sandwich", "url": "https://the-magic-tuba-pixie.itch.io/dalworthington-eats-a-sandwich"}, {"name": "Dreams of Flowers", "url": "https://chroma-kasome.itch.io/dreams-of-flowers"}, {"name": "The Jaeden Experience", "url": "https://1creative-name-here1.itch.io/the-jaeden-experience"}, {"name": "Faint of heart/Fallen heart", "url": "https://yapitsmeagain.itch.io/faint-of-heartfallen-heart"}, {"name": "Minecraft: The Player of Crystals and Abyss", "url": "https://fauwa.itch.io/crystalabyss"}, {"name": "Greatest game of all time", "url": "https://xxarmando-pintoxx.itch.io/greatest-game-of-all-time"}, {"name": "Forgorten", "url": "https://3-sided.itch.io/forgotten"}, {"name": "Next Survival", "url": "https://lasseloevstrand.itch.io/next-survival"}, {"name": "Muds Dress-Up!", "url": "https://dog-girls-on-drugs.itch.io/muds-dress-up"}, {"name": "Little Cozy Adventure 2 [Alpha]", "url": "https://oxpuppy635.itch.io/little-cozy-adventure-2"}, {"name": "Galactic East", "url": "https://metalink345.itch.io/galactic-east"}, {"name": "Striped Swipers: When Booty Calls Demo", "url": "https://stripedswipers.itch.io/whenbootycalls"}, {"name": "Unreliable Bio", "url": "https://jrjresq.itch.io/unreliable-bio"}, {"name": "N O NB", "url": "https://thanaorchard.itch.io/n-o-nb"}, {"name": "Feral Attraction", "url": "https://moontoon.itch.io/feral-attraction"}, {"name": "Tavern of Spear", "url": "https://fd-caro.itch.io/tavern-of-spear"}];
+
+const EMOJIS = ['🐺','🦊','🐱','🐰','🐶','🦁','🐯','🐻','🐼','🐨','🦝','🐹','🦔','🐾','🐉','🦎','🐊','🦕','🦖','🦬','🐃','🐂','🐄','🦌','🐐','🦃','🐔','🦚','🦜','🦢','🦩','🐢','🐙','🦊','🐺','🐱','🐰','🦁','🐻','🐾'];
+
+function getEmoji(url) {
+  let hash = 0;
+  for (let i = 0; i < url.length; i++) {
+    hash = ((hash << 5) - hash) + url.charCodeAt(i);
+    hash |= 0;
+  }
+  return EMOJIS[Math.abs(hash) % EMOJIS.length];
+}
+
+function getDomain(url) {
+  try {
+    const u = new URL(url);
+    return u.hostname.replace('.itch.io', '');
+  } catch {
+    return url;
+  }
+}
+
+function escapeHtml(s) {
+  const div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+let currentSort = 'default';
+let searchTerm = '';
+
+function render() {
+  let filtered = GAMES;
+
+  if (searchTerm) {
+    const q = searchTerm.toLowerCase();
+    filtered = filtered.filter(g =>
+      g.name.toLowerCase().includes(q) ||
+      g.url.toLowerCase().includes(q) ||
+      getDomain(g.url).toLowerCase().includes(q)
+    );
+  }
+
+  if (currentSort === 'az') {
+    filtered = [...filtered].sort((a, b) => a.name.localeCompare(b.name, 'zh-Hans-CN', {sensitivity: 'base'}));
+  } else if (currentSort === 'za') {
+    filtered = [...filtered].sort((a, b) => b.name.localeCompare(a.name, 'zh-Hans-CN', {sensitivity: 'base'}));
+  } else if (currentSort === 'domain') {
+    filtered = [...filtered].sort((a, b) => getDomain(a.url).localeCompare(getDomain(b.url), 'en', {sensitivity: 'base'}));
+  }
+
+  const grid = document.getElementById('grid');
+  document.getElementById('stat-shown').textContent = filtered.length;
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="empty"><div class="emoji">🐾</div><p>没有找到匹配的游戏</p><p class="hint">试试其他关键词？</p></div>';
+    return;
+  }
+
+  const cards = filtered.map((g, i) => {
+    const emoji = getEmoji(g.url);
+    const domain = getDomain(g.url);
+    return `<a class="card" href="${escapeHtml(g.url)}" target="_blank" rel="noopener" style="animation-delay:${Math.min(i*0.015, 0.4)}s">
+      <div class="index-num">${i + 1}</div>
+      <div class="emoji">${emoji}</div>
+      <div class="info">
+        <div class="name">${escapeHtml(g.name)}</div>
+        <div class="domain">${escapeHtml(domain)}</div>
+      </div>
+      <span class="arrow">→</span>
+    </a>`;
+  }).join('');
+
+  grid.innerHTML = cards;
+}
+
+document.getElementById('stat-total').textContent = GAMES.length;
+document.getElementById('footer-count').textContent = GAMES.length;
+
+const searchInput = document.getElementById('search');
+const searchWrap = document.getElementById('search-wrap');
+const clearBtn = document.getElementById('clear-search');
+
+searchInput.addEventListener('input', function() {
+  searchTerm = this.value.trim();
+  searchWrap.classList.toggle('has-text', searchTerm.length > 0);
+  render();
+});
+
+clearBtn.addEventListener('click', function() {
+  searchInput.value = '';
+  searchTerm = '';
+  searchWrap.classList.remove('has-text');
+  searchInput.focus();
+  render();
+});
+
+document.querySelectorAll('.sort-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    currentSort = this.dataset.sort;
+    render();
+  });
+});
+
+// 返回顶部
+const backTop = document.getElementById('back-top');
+window.addEventListener('scroll', function() {
+  backTop.classList.toggle('visible', window.scrollY > 400);
+});
+backTop.addEventListener('click', function() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// 键盘快捷键: / 聚焦搜索框
+document.addEventListener('keydown', function(e) {
+  if (e.key === '/' && document.activeElement !== searchInput) {
+    e.preventDefault();
+    searchInput.focus();
+  }
+  if (e.key === 'Escape' && document.activeElement === searchInput) {
+    searchInput.blur();
+  }
+});
+
+render();
+</script>
+
+</body>
+</html>
